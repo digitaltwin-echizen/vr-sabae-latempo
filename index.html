@@ -1,0 +1,109 @@
+<!DOCTYPE html><html><head>
+<title>la-tempo - 福井県鯖江市</title>
+<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+<script src="https://rawgit.com/fernandojsg/aframe-teleport-controls/master/dist/aframe-teleport-controls.min.js"></script>
+<script type="module" src="https://code4fukui.github.io/glb-viewer/mc-controls.js"></script>
+</head>
+
+<body>
+<a-scene id="scene" background="color: #4080e0" renderer="colorManagement: true">
+  <a-assets timeout="20000">
+    <a-asset-item id="hall-obj" src="./latempo-hall.glb"></a-asset-item>
+    <a-asset-item id="room1-obj" src="./latempo-room1.glb"></a-asset-item>
+    <a-asset-item id="room2-obj" src="./latempo-room2.glb"></a-asset-item>
+    <a-asset-item id="room3-obj" src="./latempo-room3.glb"></a-asset-item>
+  </a-assets>
+  <a-entity id="hall" gltf-model="#hall-obj" position="0 0 0" scale="1 1 1" rotation="0 0 0"></a-entity>
+  <a-entity id="room1" gltf-model="#room1-obj" position="-6.25 0 -6.45" scale="1 1 1" rotation="0 118.3 0"></a-entity>
+  <a-entity id="room2" gltf-model="#room2-obj" position="-3.88 0 -7.47" scale="1 1 1" rotation="0 -9.6 0"></a-entity>
+  <a-entity id="room3" gltf-model="#room3-obj" position="-1.25 0 -7.2" scale="1 1 1" rotation="0 114 0"></a-entity>
+
+  <a-entity light="type: ambient; color: #FFF"></a-entity>
+
+    <!-- <a-sphere id="sphere" color="#f22"></a-sphere> -->
+  <a-entity id="cameraRig" position="-3.7 0 -1.5" rotation="0 -65 0">
+    <a-entity id="head" camera position="0 0 0" mc-controls look-controls></a-entity>
+    <a-entity oculus-touch-controls="hand:left" teleport-controls="button:trigger; collisionEntities:.collidable; cameraRig:#cameraRig; teleportOrigin:#head;"></a-entity>
+    <a-entity oculus-touch-controls="hand:right" teleport-controls="button:trigger; collisionEntities:.collidable; cameraRig:#cameraRig; teleportOrigin:#head;"></a-entity>
+    <!--
+    <a-entity id="leftHand" hand-tracking-controls="hand: left;"></a-entity>
+    <a-entity id="rightHand" hand-tracking-controls="hand: right;"></a-entity>
+    -->
+    </a-entity>
+</a-scene>
+    
+<script type="module">
+
+const stringifyArray = (ar) => {
+  const s = [];
+  s.push("const campos = [");
+  ar.forEach(a => {
+    s.push("  " + JSON.stringify(a) + ",");
+  });
+  s.push("];")
+  return s.join("\n");
+};
+
+const locs = [];
+
+const showPos = () => {
+  const pos = head.getAttribute("position");
+  const rot = head.getAttribute("rotation");
+  locs.push({ pos: pos.clone(), rot: { x: rot.x, y: rot.y, z: rot.z } });
+  
+  console.log(stringifyArray(locs));
+};
+onload = async () => {
+  const ua = navigator.userAgent;
+  console.log(ua)
+  if (ua.indexOf("Quest") != 0) {
+    const pos = head.getAttribute("position");
+    pos.y = 1.7;
+    head.setAttribute("position", pos);
+  }
+
+  document.body.addEventListener("keydown", (e) => {
+    console.log(e.key);
+    if (e.key == "Escape") {
+      locs.splice(0); // clear array
+    }
+    if (e.key == "Enter") {
+      showPos();
+      //console.log(JSON.stringify(locs.map(a => JSON.stringify(a)), null, 2));
+    }
+    const dx = .02;
+    const dr = .2;
+    const target = room1;
+    if (e.key == "h" || e.key == "n") {
+      const pos = target.getAttribute("position");
+      pos.x += e.key == "h" ? dx : -dx;
+      target.setAttribute("position", pos);
+      console.log(pos);
+    } else if (e.key == "c" || e.key == "t") {
+      const pos = target.getAttribute("position");
+      pos.z += e.key == "c" ? dx : -dx;
+      target.setAttribute("position", pos);
+      console.log(pos);
+    } else if (e.key == "g" || e.key == "r") {
+      const rot = target.getAttribute("rotation");
+      rot.y += e.key == "g" ? dr : -dr;
+      target.setAttribute("rotation", rot);
+      console.log(rot);
+    }
+  });
+  /*
+  let n = 0;
+  setInterval(() => {
+    if (n == campos.length) {
+      n = 0;
+    }
+    const c = campos[n++];
+    console.log(c.pos);
+    head.setAttribute("position", c.pos);
+    head.setAttribute("rotation", c.rot);
+  }, 1000);
+  */
+};
+</script>
+</body>
+</html>
